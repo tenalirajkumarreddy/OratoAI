@@ -27,11 +27,19 @@ export const AI_PROVIDERS: Record<string, AIProviderConfig> = {
     supportedModels: [
       'openai/gpt-4o',
       'openai/gpt-4o-mini',
+      'openai/gpt-4-turbo',
       'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3-opus',
       'anthropic/claude-3-haiku',
       'deepseek/deepseek-chat',
-      'google/gemini-pro',
+      'google/gemini-pro-1.5',
+      'google/gemini-flash-1.5',
       'meta-llama/llama-3.1-405b-instruct',
+      'meta-llama/llama-3.1-70b-instruct',
+      'meta-llama/llama-3.1-8b-instruct',
+      'mistralai/mistral-large',
+      'mistralai/mistral-medium',
+      'cohere/command-r-plus',
     ],
     requiresAuth: true,
   },
@@ -98,6 +106,11 @@ export class AIService {
       if (this.provider === 'openrouter') {
         headers['HTTP-Referer'] = window.location.origin;
         headers['X-Title'] = 'Speak with Spark AI';
+        // Add optional OpenRouter preferences
+        if (requestBody.model.includes('gpt') || requestBody.model.includes('claude')) {
+          // Prefer higher quality for premium models
+          headers['X-Prefer-Quality'] = 'true';
+        }
       }
 
       const response = await fetch(this.baseUrl, {
