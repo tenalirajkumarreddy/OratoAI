@@ -1,44 +1,21 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useApp } from '@/contexts/AppContext';
 
+// Speech Recognition Types
 declare global {
   interface Window {
-    SpeechRecognition: new () => SpeechRecognition;
-    webkitSpeechRecognition: new () => SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }
 
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  grammars: SpeechGrammarList;
-  interimResults: boolean;
-  lang: string;
-  maxAlternatives: number;
-  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  serviceURI: string;
-  abort(): void;
-  start(): void;
-  stop(): void;
-}
-
-interface SpeechRecognitionEvent extends Event {
+interface SpeechRecognitionEvent {
   resultIndex: number;
   results: SpeechRecognitionResultList;
 }
 
-interface SpeechRecognitionErrorEvent extends Event {
+interface SpeechRecognitionErrorEvent {
   error: string;
   message: string;
 }
@@ -61,27 +38,37 @@ interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
-interface SpeechGrammarList {
-  readonly length: number;
-  item(index: number): SpeechGrammar;
-  [index: number]: SpeechGrammar;
-  addFromString(string: string, weight?: number): void;
-  addFromURI(src: string, weight?: number): void;
-}
-
-interface SpeechGrammar {
-  src: string;
-  weight: number;
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  grammars: any;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  abort(): void;
+  start(): void;
+  stop(): void;
 }
 
 export function useSpeechRecognition() {
-  const { state, dispatch } = useApp();
   const [transcript, setTranscript] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
     if (SpeechRecognition) {
       setIsSupported(true);
       const recognition = new SpeechRecognition();
@@ -91,7 +78,7 @@ export function useSpeechRecognition() {
       recognition.lang = 'en-US';
       
       recognition.onstart = () => {
-        dispatch({ type: 'SET_RECORDING', payload: true });
+        setIsListening(true);
       };
       
       recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -112,11 +99,11 @@ export function useSpeechRecognition() {
       
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
-        dispatch({ type: 'SET_RECORDING', payload: false });
+        setIsListening(false);
       };
       
       recognition.onend = () => {
-        dispatch({ type: 'SET_RECORDING', payload: false });
+        setIsListening(false);
       };
       
       recognitionRef.current = recognition;
@@ -127,20 +114,20 @@ export function useSpeechRecognition() {
         recognitionRef.current.stop();
       }
     };
-  }, [dispatch]);
+  }, []);
 
   const startListening = useCallback(() => {
-    if (recognitionRef.current && !state.isRecording) {
+    if (recognitionRef.current && !isListening) {
       setTranscript('');
       recognitionRef.current.start();
     }
-  }, [state.isRecording]);
+  }, [isListening]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && state.isRecording) {
+    if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
     }
-  }, [state.isRecording]);
+  }, [isListening]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
@@ -148,7 +135,7 @@ export function useSpeechRecognition() {
 
   return {
     transcript,
-    isListening: state.isRecording,
+    isListening,
     isSupported,
     startListening,
     stopListening,
@@ -157,7 +144,7 @@ export function useSpeechRecognition() {
 }
 
 export function useSpeechSynthesis() {
-  const { state, dispatch } = useApp();
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSupported, setIsSupported] = useState(false);
 
@@ -179,54 +166,60 @@ export function useSpeechSynthesis() {
     }
   }, []);
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback((text: string, voiceSettings?: {
+    rate?: number;
+    pitch?: number;
+    volume?: number;
+    voice?: string;
+  }) => {
     if (!isSupported || !text.trim()) return;
 
     // Cancel any ongoing speech
     speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    const { voiceSettings } = state.config;
     
-    utterance.rate = voiceSettings.rate;
-    utterance.pitch = voiceSettings.pitch;
-    utterance.volume = voiceSettings.volume;
+    utterance.rate = voiceSettings?.rate || 1;
+    utterance.pitch = voiceSettings?.pitch || 1;
+    utterance.volume = voiceSettings?.volume || 1;
     
     // Find and set the selected voice
-    const selectedVoice = voices.find(voice => 
-      voice.name === voiceSettings.voice || voice.default
-    );
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
+    if (voiceSettings?.voice) {
+      const selectedVoice = voices.find(voice => 
+        voice.name === voiceSettings.voice || voice.default
+      );
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
     }
     
     utterance.onstart = () => {
-      dispatch({ type: 'SET_PLAYING', payload: true });
+      setIsSpeaking(true);
     };
     
     utterance.onend = () => {
-      dispatch({ type: 'SET_PLAYING', payload: false });
+      setIsSpeaking(false);
     };
     
     utterance.onerror = (event) => {
       console.error('Speech synthesis error:', event.error);
-      dispatch({ type: 'SET_PLAYING', payload: false });
+      setIsSpeaking(false);
     };
     
     speechSynthesis.speak(utterance);
-  }, [isSupported, voices, state.config.voiceSettings, dispatch]);
+  }, [isSupported, voices]);
 
   const stop = useCallback(() => {
     if (isSupported) {
       speechSynthesis.cancel();
-      dispatch({ type: 'SET_PLAYING', payload: false });
+      setIsSpeaking(false);
     }
-  }, [isSupported, dispatch]);
+  }, [isSupported]);
 
   return {
     speak,
     stop,
-    isSpeaking: state.isPlaying,
+    isSpeaking,
     voices,
     isSupported
   };
