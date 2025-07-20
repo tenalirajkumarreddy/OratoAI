@@ -33,11 +33,14 @@ const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="relative">
-              <Brain className="w-8 h-8 text-primary" />
-              <Mic className="w-4 h-4 text-accent absolute -bottom-1 -right-1" />
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                </div>
+              </div>
             </div>
             <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              SpeakAI
+              Orato AI
             </span>
           </Link>
 

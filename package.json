@@ -1,8 +1,9 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "orato-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "AI-powered English speaking platform for practice and interviews",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

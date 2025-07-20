@@ -57,7 +57,7 @@ const Index = () => {
             <h1 className="text-5xl md:text-7xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-6 leading-tight">
               Master English with
               <br />
-              AI Conversations
+              Orato AI
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">

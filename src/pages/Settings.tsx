@@ -60,7 +60,7 @@ const Settings = () => {
     });
 
     // Save to localStorage for persistence
-    localStorage.setItem('speakAI_settings', JSON.stringify({
+    localStorage.setItem('oratoAI_settings', JSON.stringify({
       aiSettings: { ...state.aiSettings, apiKey: localApiKey },
       voiceSettings: state.voiceSettings,
     }));
@@ -73,7 +73,7 @@ const Settings = () => {
 
   // Load settings from localStorage on component mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem('speakAI_settings');
+    const savedSettings = localStorage.getItem('oratoAI_settings');
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);

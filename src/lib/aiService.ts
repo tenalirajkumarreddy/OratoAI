@@ -157,11 +157,11 @@ export class AIService {
       // Add provider-specific headers
       if (this.provider === 'openrouter') {
         headers['HTTP-Referer'] = window.location.origin;
-        headers['X-Title'] = 'Speak with Spark AI';
+        headers['X-Title'] = 'Orato AI';
         // Removed X-Prefer-Quality header as it causes CORS issues
       } else if (this.provider === 'perplexity') {
         // Perplexity-specific headers and configuration
-        headers['User-Agent'] = 'Speak-with-Spark-AI/1.0';
+        headers['User-Agent'] = 'Orato-AI/1.0';
         // Enable search for online models if using sonar models
         if (requestBody.model.includes('sonar')) {
           requestBody.return_citations = true;
@@ -260,7 +260,7 @@ Please reference this context in your conversations and help the user practice d
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'Speak with Spark AI Test'
+        'X-Title': 'Orato AI Test'
         // Removed problematic headers that cause CORS issues
       },
       body: JSON.stringify({

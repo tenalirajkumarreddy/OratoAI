@@ -1,4 +1,17 @@
-# Welcome to your Lovable project
+# Orato AI - English Speaking Platform
+
+## Project Overview
+
+**Orato AI** is an advanced AI-powered English speaking platform that helps users practice speaking English, prepare for interviews, and improve their communication skills through intelligent conversations and real-time feedback.
+
+## Features
+
+- **AI-Powered Conversations**: Practice speaking with advanced AI that provides natural, intelligent responses
+- **Interview Simulation**: Comprehensive interview practice with resume upload, AI-generated questions, and professional reporting
+- **Real-time Feedback**: Get instant feedback on pronunciation, fluency, and content quality
+- **Voice Recognition & Synthesis**: Advanced speech recognition and natural voice synthesis
+- **Customizable Settings**: Configure AI models, voice settings, and difficulty levels
+- **Professional Reports**: Detailed interview reports with competency scoring and recommendations
 
 ## Project info
 
