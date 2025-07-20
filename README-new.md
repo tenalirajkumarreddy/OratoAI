@@ -10,9 +10,7 @@
 
 **Master English with AI Conversations | Practice Speaking | Ace Your Interviews**
 
-[🚀 Live Demo](https://oratoai.netlify.app/) • [📖 Documentation](#documentation) • [🤝 Contributing](#contributing) • [📞 Support](#support)
-
-[![CLICK HERE TO USE ORATO AI](https://img.shields.io/badge/CLICK%20HERE%20TO%20USE%20ORATO%20AI-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white)](https://oratoai.netlify.app/)
+[🚀 Live Demo](https://lovable.dev/projects/e6fb9509-f072-4a94-8e69-2d3bf6d7c5d0) • [📖 Documentation](#documentation) • [🤝 Contributing](#contributing) • [📞 Support](#support)
 
 </div>
 
@@ -218,7 +216,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - **Discussions**: Community Q&A and general discussion
 
 ### 🌐 Connect With Us
-- **Website**: [Orato AI](https://oratoai.netlify.app/)
+- **Website**: [Orato AI](https://lovable.dev/projects/e6fb9509-f072-4a94-8e69-2d3bf6d7c5d0)
 - **GitHub**: [@tenalirajkumarreddy](https://github.com/tenalirajkumarreddy)
 
 ---
