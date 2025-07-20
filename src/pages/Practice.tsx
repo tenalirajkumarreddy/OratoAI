@@ -42,18 +42,21 @@ const Practice = () => {
   // Handle transcript changes
   useEffect(() => {
     if (transcript.trim() && isListening) {
+      console.log('[Practice] Transcript updated:', transcript);
+      
       // Reset silence timeout when speech is detected
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
       }
       
-      // Set new silence timeout
+      // Set new silence timeout with longer delay for continuous speech
       silenceTimeoutRef.current = setTimeout(() => {
         if (isListening && transcript.trim()) {
+          console.log('[Practice] Silence timeout reached, sending transcript:', transcript);
           stopListening();
           handleSendMessage(transcript, 'voice');
         }
-      }, state.voiceSettings.silenceTimeout * 1000);
+      }, Math.max(state.voiceSettings.silenceTimeout * 1000, 3000)); // Minimum 3 seconds
     }
   }, [transcript, isListening, state.voiceSettings.silenceTimeout]);
 
@@ -70,7 +73,7 @@ const Practice = () => {
           if (!isListening) {
             startListening();
           }
-        }, 1500); // Wait 1.5 seconds after AI stops speaking
+        }, state.voiceSettings.autoActivationDelay * 1000); // Use the configurable delay
       }
     }
     
@@ -79,7 +82,7 @@ const Practice = () => {
         clearTimeout(autoActivateTimeoutRef.current);
       }
     };
-  }, [isSpeaking, sessionStarted, state.voiceSettings.autoActivation, messages, isListening, startListening]);
+  }, [isSpeaking, sessionStarted, state.voiceSettings.autoActivation, state.voiceSettings.autoActivationDelay, messages, isListening, startListening]);
 
   // Start session and send initial greeting
   const handleStartSession = async () => {
@@ -110,6 +113,13 @@ const Practice = () => {
       };
 
       dispatch({ type: 'START_SESSION', payload: newSession });
+
+      // Debug: Log the values being passed to AIService
+      console.log('🔍 Practice Debug - API Settings:');
+      console.log('  API Key:', state.aiSettings.apiKey ? `Present (${state.aiSettings.apiKey.length} chars)` : 'MISSING');
+      console.log('  Provider:', state.aiSettings.provider);
+      console.log('  Model:', state.aiSettings.model);
+      console.log('  First 10 chars of key:', state.aiSettings.apiKey ? state.aiSettings.apiKey.substring(0, 10) + '...' : 'N/A');
 
       // Send initial greeting to AI
       const aiService = new AIService(
@@ -500,17 +510,52 @@ const Practice = () => {
 
                     {/* Session Controls */}
                     <div className="flex justify-center space-x-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          stopListening();
-                          stopSpeaking();
-                        }}
-                        disabled={!isListening && !isSpeaking}
-                      >
-                        <Pause className="w-4 h-4 mr-2" />
-                        Pause
-                      </Button>
+                      {isSpeaking && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            stopSpeaking();
+                            // Cancel any pending auto-activation
+                            if (autoActivateTimeoutRef.current) {
+                              clearTimeout(autoActivateTimeoutRef.current);
+                            }
+                            setIsWaitingForSpeech(false);
+                          }}
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                        >
+                          <Square className="w-4 h-4 mr-2" />
+                          Stop AI Speech
+                        </Button>
+                      )}
+                      {isListening && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            stopListening();
+                            if (transcript.trim()) {
+                              handleSendMessage(transcript, 'voice');
+                            }
+                          }}
+                          className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                        >
+                          <Square className="w-4 h-4 mr-2" />
+                          Stop Listening
+                        </Button>
+                      )}
+                      {!isSpeaking && !isListening && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            stopListening();
+                            stopSpeaking();
+                          }}
+                          disabled={true}
+                          className="opacity-50"
+                        >
+                          <Pause className="w-4 h-4 mr-2" />
+                          Nothing Active
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         onClick={handleEndSession}

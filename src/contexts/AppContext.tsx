@@ -33,7 +33,8 @@ const initialState: AppState = {
   },
   voiceSettings: {
     autoActivation: true,
-    silenceTimeout: 6,
+    autoActivationDelay: 2, // 2 seconds delay after AI stops speaking
+    silenceTimeout: 8, // Increased to 8 seconds for longer utterances
     language: 'en-US',
     accent: 'neutral',
     rate: 1,

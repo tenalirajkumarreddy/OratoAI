@@ -85,19 +85,6 @@ const Index = () => {
                 </Button>
               </Link>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-card border border-border mb-2`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -131,40 +118,6 @@ const Index = () => {
               </div>
             </Card>
           ))}
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="bg-gradient-primary text-primary-foreground">
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to transform your English skills?
-          </h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of learners who are already improving their English with our AI-powered platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/practice">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="text-lg px-8 py-4 bg-background text-foreground hover:bg-muted transition-all duration-300"
-              >
-                Get Started Free
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link to="/settings">
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="text-lg px-8 py-4 border-background/20 text-primary-foreground hover:bg-background/10 transition-all duration-300"
-              >
-                <Settings className="w-5 h-5 mr-2" />
-                Configure Settings
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
     </div>

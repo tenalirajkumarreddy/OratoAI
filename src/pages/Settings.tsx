@@ -31,6 +31,13 @@ const Settings = () => {
       'google/gemini-pro-1.5': '🔍 Great for document analysis and context understanding',
       'meta-llama/llama-3.1-405b-instruct': '🏆 Most powerful open-source model',
       'meta-llama/llama-3.1-70b-instruct': '⚖️ Good balance of performance and speed',
+      'llama-3.1-sonar-small-128k-online': '🔍 Fast web-connected model with real-time info',
+      'llama-3.1-sonar-large-128k-online': '🌐 Powerful web-connected model with current knowledge',
+      'llama-3.1-sonar-huge-128k-online': '🚀 Most powerful web-connected model for complex queries',
+      'llama-3.1-8b-instruct': '⚡ Fast and efficient for quick conversations',
+      'llama-3.1-70b-instruct': '🎯 Excellent reasoning and conversation quality',
+      'mixtral-8x7b-instruct': '🔧 Great for technical discussions and problem-solving',
+      'codellama-34b-instruct': '💻 Specialized for coding and programming conversations',
     };
     return recommendations[model] || '';
   };
@@ -40,7 +47,8 @@ const Settings = () => {
       openai: "Get your API key from: https://platform.openai.com/api-keys",
       openrouter: "Get your API key from: https://openrouter.ai/keys (Supports 100+ AI models)",
       deepseek: "Get your API key from: https://platform.deepseek.com/api-keys",
-      anthropic: "Get your API key from: https://console.anthropic.com/account/keys"
+      anthropic: "Get your API key from: https://console.anthropic.com/account/keys",
+      perplexity: "Get your API key from: https://www.perplexity.ai/settings/api (Real-time web search enabled)"
     };
     return instructions[provider as keyof typeof instructions] || "Check your AI provider's dashboard for API keys.";
   };
@@ -152,6 +160,7 @@ const Settings = () => {
                   <br />• <strong>OpenRouter</strong>: Access to multiple AI models (GPT, Claude, LLaMA, Gemini) with competitive pricing
                   <br />• <strong>DeepSeek</strong>: Cost-effective Chinese AI with strong coding capabilities
                   <br />• <strong>Anthropic</strong>: Direct access to Claude models with advanced reasoning
+                  <br />• <strong>Perplexity</strong>: Real-time web search capabilities with latest information and citations
                 </p>
               </div>
 
@@ -257,6 +266,27 @@ const Settings = () => {
                 </div>
               </div>
             )}
+
+            {/* Perplexity Special Info */}
+            {state.aiSettings.provider === 'perplexity' && (
+              <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div className="flex items-start space-x-3">
+                  <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100 mb-2">
+                      Perplexity Benefits
+                    </h4>
+                    <ul className="text-xs text-purple-800 dark:text-purple-200 space-y-1">
+                      <li>• Real-time web search with current information</li>
+                      <li>• Sonar models provide up-to-date knowledge</li>
+                      <li>• Citations and sources for factual claims</li>
+                      <li>• Excellent for current events and recent topics</li>
+                      <li>• Multiple LLaMA and Mixtral model options</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Voice Settings */}
@@ -272,7 +302,7 @@ const Settings = () => {
                 <div className="space-y-1">
                   <Label className="text-sm font-medium">Auto Microphone Activation</Label>
                   <p className="text-xs text-muted-foreground">
-                    Automatically start listening after AI responds
+                    Automatically start listening after AI responds. You can always manually stop AI speech or listening using the control buttons.
                   </p>
                 </div>
                 <Switch
@@ -280,6 +310,26 @@ const Settings = () => {
                   onCheckedChange={(value) => handleVoiceSettingChange('autoActivation', value)}
                 />
               </div>
+
+              {/* Auto Activation Delay (only show if auto activation is enabled) */}
+              {state.voiceSettings.autoActivation && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
+                    Auto-Activation Delay: {state.voiceSettings.autoActivationDelay}s
+                  </Label>
+                  <Slider
+                    value={[state.voiceSettings.autoActivationDelay]}
+                    onValueChange={([value]) => handleVoiceSettingChange('autoActivationDelay', value)}
+                    min={1}
+                    max={5}
+                    step={0.5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How long to wait after AI stops speaking before activating microphone.
+                  </p>
+                </div>
+              )}
 
               {/* Silence Timeout */}
               <div className="space-y-3">
@@ -295,7 +345,7 @@ const Settings = () => {
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  How long to wait for speech before auto-submitting your message.
+                  How long to wait for speech before auto-submitting your message. Longer timeouts allow for more thoughtful responses and pauses.
                 </p>
               </div>
 

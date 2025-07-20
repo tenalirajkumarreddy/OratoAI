@@ -37,6 +37,7 @@ export interface AISettings {
 
 export interface VoiceSettings {
   autoActivation: boolean;
+  autoActivationDelay: number; // in seconds (delay after AI stops speaking)
   silenceTimeout: number; // in seconds
   language: string;
   accent: string;

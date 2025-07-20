@@ -65,6 +65,7 @@ export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const accumulatedTranscriptRef = useRef(''); // Store accumulated transcript
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -76,16 +77,19 @@ export function useSpeechRecognition() {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
       
       recognition.onstart = () => {
         setIsListening(true);
+        console.log('🎤 Speech recognition started');
       };
       
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalTranscript = '';
         let interimTranscript = '';
         
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        // Process ALL results, not just from resultIndex
+        for (let i = 0; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
@@ -94,7 +98,21 @@ export function useSpeechRecognition() {
           }
         }
         
-        setTranscript(finalTranscript + interimTranscript);
+        // Accumulate final results and show interim results
+        if (finalTranscript) {
+          accumulatedTranscriptRef.current += finalTranscript;
+          console.log('🎯 Final transcript added:', finalTranscript);
+          console.log('📝 Total accumulated:', accumulatedTranscriptRef.current);
+        }
+        
+        // Show accumulated + current interim
+        const fullTranscript = accumulatedTranscriptRef.current + interimTranscript;
+        setTranscript(fullTranscript);
+        
+        // Debug logging
+        if (interimTranscript) {
+          console.log('⏳ Interim:', interimTranscript);
+        }
       };
       
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -118,7 +136,10 @@ export function useSpeechRecognition() {
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
+      // Reset both state and accumulated transcript when starting fresh
       setTranscript('');
+      accumulatedTranscriptRef.current = '';
+      console.log('🚀 Starting fresh speech recognition');
       recognitionRef.current.start();
     }
   }, [isListening]);
@@ -126,11 +147,15 @@ export function useSpeechRecognition() {
   const stopListening = useCallback(() => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
+      console.log('⏹️ Speech recognition stopped');
+      console.log('📄 Final transcript:', transcript);
     }
-  }, [isListening]);
+  }, [isListening, transcript]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
+    accumulatedTranscriptRef.current = '';
+    console.log('🔄 Transcript reset');
   }, []);
 
   return {
@@ -177,7 +202,28 @@ export function useSpeechSynthesis() {
     // Cancel any ongoing speech
     speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Clean text for natural speech - remove emojis, special symbols, and excessive punctuation
+    const cleanText = text
+      // Remove emojis (Unicode ranges for emojis)
+      .replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '')
+      // Remove bullet points and special characters
+      .replace(/[•·▪▫◦‣⁃]/g, '')
+      // Clean up multiple spaces
+      .replace(/\s+/g, ' ')
+      // Remove excessive punctuation (multiple dots, exclamation marks, etc.)
+      .replace(/[.]{2,}/g, '.')
+      .replace(/[!]{2,}/g, '!')
+      .replace(/[?]{2,}/g, '?')
+      // Remove markdown-style formatting
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold**
+      .replace(/\*(.*?)\*/g, '$1') // Remove *italic*
+      .replace(/`(.*?)`/g, '$1') // Remove `code`
+      // Remove URLs
+      .replace(/https?:\/\/[^\s]+/g, '')
+      // Clean up and normalize
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     
     utterance.rate = voiceSettings?.rate || 1;
     utterance.pitch = voiceSettings?.pitch || 1;

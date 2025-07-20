@@ -55,6 +55,20 @@ export const AI_PROVIDERS: Record<string, AIProviderConfig> = {
     supportedModels: ['claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'],
     requiresAuth: true,
   },
+  perplexity: {
+    name: 'Perplexity',
+    baseUrl: 'https://api.perplexity.ai/chat/completions',
+    supportedModels: [
+      'llama-3.1-sonar-small-128k-online',
+      'llama-3.1-sonar-large-128k-online',
+      'llama-3.1-sonar-huge-128k-online',
+      'llama-3.1-8b-instruct',
+      'llama-3.1-70b-instruct',
+      'mixtral-8x7b-instruct',
+      'codellama-34b-instruct',
+    ],
+    requiresAuth: true,
+  },
 };
 
 export class AIService {
@@ -72,6 +86,32 @@ export class AIService {
 
   async sendMessage(messages: Message[], context?: string): Promise<AIResponse> {
     try {
+      // Debug logging for API key
+      console.log('🔑 API Key check:', this.apiKey ? `Present (${this.apiKey.length} chars)` : 'MISSING');
+      console.log('🚀 Provider:', this.provider);
+      console.log('🤖 Model:', this.model);
+      
+      // Validate API key format for different providers
+      if (this.provider === 'openrouter' && this.apiKey && !this.apiKey.startsWith('sk-or-v1-')) {
+        console.warn('⚠️ Warning: OpenRouter API keys should start with "sk-or-v1-"');
+        console.log('🔍 Your key starts with:', this.apiKey.substring(0, 10));
+        
+        // Auto-detect provider based on key format
+        if (this.apiKey.startsWith('sk-') && !this.apiKey.startsWith('sk-or-')) {
+          console.warn('💡 Suggestion: Your key looks like a DeepSeek key. Try changing Provider to "DeepSeek" in Settings.');
+        }
+      }
+      
+      if (this.provider === 'deepseek' && this.apiKey && !this.apiKey.startsWith('sk-')) {
+        console.warn('⚠️ Warning: DeepSeek API keys should start with "sk-"');
+        console.log('🔍 Your key starts with:', this.apiKey.substring(0, 10));
+      }
+      
+      if (this.provider === 'openai' && this.apiKey && !this.apiKey.startsWith('sk-')) {
+        console.warn('⚠️ Warning: OpenAI API keys should start with "sk-"');
+        console.log('🔍 Your key starts with:', this.apiKey.substring(0, 10));
+      }
+
       const systemPrompt = this.getSystemPrompt(context);
       
       // Format messages for API
@@ -83,7 +123,7 @@ export class AIService {
         }))
       ];
 
-      const requestBody = {
+      const requestBody: any = {
         model: this.model,
         messages: apiMessages,
         temperature: 0.7,
@@ -95,23 +135,44 @@ export class AIService {
       };
 
       // Set authorization header based on provider
+      console.log('🔧 Setting auth header for provider:', this.provider);
       if (this.provider === 'anthropic') {
         headers['x-api-key'] = this.apiKey;
         headers['anthropic-version'] = '2023-06-01';
+        console.log('🔐 Anthropic auth header set');
       } else {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
+        console.log('🔐 Bearer auth header set');
+      }
+
+      // Debug: Check if authorization header is set
+      console.log('🔐 Authorization header set:', headers['Authorization'] ? 'YES' : 'NO');
+      if (headers['Authorization']) {
+        console.log('🎫 Auth format:', headers['Authorization'].substring(0, 20) + '...');
+      }
+      if (headers['x-api-key']) {
+        console.log('🎫 Anthropic key format:', headers['x-api-key'].substring(0, 10) + '...');
       }
 
       // Add provider-specific headers
       if (this.provider === 'openrouter') {
         headers['HTTP-Referer'] = window.location.origin;
         headers['X-Title'] = 'Speak with Spark AI';
-        // Add optional OpenRouter preferences
-        if (requestBody.model.includes('gpt') || requestBody.model.includes('claude')) {
-          // Prefer higher quality for premium models
-          headers['X-Prefer-Quality'] = 'true';
+        // Removed X-Prefer-Quality header as it causes CORS issues
+      } else if (this.provider === 'perplexity') {
+        // Perplexity-specific headers and configuration
+        headers['User-Agent'] = 'Speak-with-Spark-AI/1.0';
+        // Enable search for online models if using sonar models
+        if (requestBody.model.includes('sonar')) {
+          requestBody.return_citations = true;
+          requestBody.return_images = false;
+          requestBody.return_related_questions = false;
         }
       }
+
+      // Debug logging for headers (without showing actual API key)
+      console.log('📡 Headers:', Object.keys(headers));
+      console.log('🎯 Request URL:', this.baseUrl);
 
       const response = await fetch(this.baseUrl, {
         method: 'POST',
@@ -187,3 +248,45 @@ Please reference this context in your conversations and help the user practice d
     return response;
   }
 }
+
+// Debug function for testing API connection - available in browser console
+(window as any).testOpenRouterAPI = async (apiKey: string) => {
+  console.log('🧪 Testing OpenRouter API connection...');
+  
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Speak with Spark AI Test'
+        // Removed problematic headers that cause CORS issues
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: 'Say hello in one word.' }
+        ],
+        temperature: 0.7,
+        max_tokens: 10
+      })
+    });
+
+    console.log('📡 Response status:', response.status);
+    const data = await response.text();
+    console.log('📄 Response data:', data);
+    
+    if (response.ok) {
+      console.log('✅ API connection successful!');
+      return JSON.parse(data);
+    } else {
+      console.log('❌ API connection failed');
+      return { error: data };
+    }
+  } catch (error) {
+    console.log('💥 Network error:', error);
+    return { error: error };
+  }
+};
